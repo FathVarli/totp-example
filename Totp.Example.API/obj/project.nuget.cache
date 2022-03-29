@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "f8OTY7sTnvay8Vtirs2bYOQ1jJ0gFjK4yIE5iXl/fr4UdBJbOPUmr/H5tSF1V7q2NP97ZX0tElYDSrUN8b3j3A==",
+  "success": true,
+  "projectFilePath": "C:\\Projects\\Totp.Example\\Totp.Example.API\\Totp.Example.API.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\MarineAdvisor001\\.nuget\\packages\\otp.net\\1.2.2\\otp.net.1.2.2.nupkg.sha512"
+  ],
+  "logs": []
+}
