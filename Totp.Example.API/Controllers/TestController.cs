@@ -7,17 +7,19 @@ namespace Totp.Example.API.Controllers;
 [Route("test")]
 public class TestController : Controller
 {
-    [HttpGet]
-    public IActionResult Test()
+    [HttpGet("otp")]
+    public IActionResult GetOtp()
     {
-        var key = KeyGeneration.GenerateRandomKey(OtpHashMode.Sha256);
+        var key = KeyGeneration.GenerateRandomKey(OtpHashMode.Sha512);
 
-        var totp = new OtpNet.Totp(key, 60, OtpHashMode.Sha256);
+        var totp = new OtpNet.Totp(key, 60, OtpHashMode.Sha512);
 
         var random = totp.ComputeTotp(DateTime.UtcNow);
-        Console.WriteLine($"First: {totp.RemainingSeconds()}");
-
-
+        
+        //TODO: DB Insert yaparken TransactionId (Guid veya HashId) oluştur 
+        //Bu bilgileri UserOtp tablosunda tut. UserOtp -> UserId, TransactionId, Otp bilgileri tutulacak
+        //Verify yaparken kullanıcıdan TransactionId ve Otp bilgisini alıp kontrol sağlayacağız
+        
         return Ok(new Response
         {
             Key = key,
@@ -25,10 +27,10 @@ public class TestController : Controller
         });
     }
 
-    [HttpPost]
-    public IActionResult Test([FromBody] Response randomResponse)
+    [HttpPost("verify")]
+    public IActionResult Verify([FromBody] Response randomResponse)
     {
-        var totp = new OtpNet.Totp(randomResponse.Key, 60, OtpHashMode.Sha256);
+        var totp = new OtpNet.Totp(randomResponse.Key, 60, OtpHashMode.Sha512);
 
         Console.WriteLine($"Second: {totp.RemainingSeconds()}");
         var window = new VerificationWindow(previous:1, future:1);
@@ -45,5 +47,7 @@ public class TestController : Controller
 public class Response
 {
     public byte[] Key { get; set; }
+    
+    public string UserId { get; set; }
     public string Random { get; set; }
 }
