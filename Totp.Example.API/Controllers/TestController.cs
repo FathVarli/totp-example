@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OtpNet;
+using Totp.Example.API.Dtos;
+using Totp.Example.API.ServiceLayer;
 
 namespace Totp.Example.API.Controllers;
 
@@ -7,47 +8,28 @@ namespace Totp.Example.API.Controllers;
 [Route("test")]
 public class TestController : Controller
 {
-    [HttpGet("otp")]
-    public IActionResult GetOtp()
+    private readonly IOtpService _otpService;
+
+    public TestController(IOtpService otpService)
     {
-        var key = KeyGeneration.GenerateRandomKey(OtpHashMode.Sha512);
+        _otpService = otpService;
+    }
 
-        var totp = new OtpNet.Totp(key, 60, OtpHashMode.Sha512);
-
-        var random = totp.ComputeTotp(DateTime.UtcNow);
-        
+    [HttpGet("otp")]
+    public IActionResult GetOtp([FromQuery] long userId)
+    {
         //TODO: DB Insert yaparken TransactionId (Guid veya HashId) oluştur 
         //Bu bilgileri UserOtp tablosunda tut. UserOtp -> UserId, TransactionId, Otp bilgileri tutulacak
         //Verify yaparken kullanıcıdan TransactionId ve Otp bilgisini alıp kontrol sağlayacağız
-        
-        return Ok(new Response
-        {
-            Key = key,
-            Random = random
-        });
+
+        var result = _otpService.CreateOtp(userId);
+        return Ok(result);
     }
 
     [HttpPost("verify")]
-    public IActionResult Verify([FromBody] Response randomResponse)
+    public IActionResult Verify([FromBody] OtpResponseDto otpResponseDto)
     {
-        var totp = new OtpNet.Totp(randomResponse.Key, 60, OtpHashMode.Sha512);
-
-        Console.WriteLine($"Second: {totp.RemainingSeconds()}");
-        var window = new VerificationWindow(previous:1, future:1);
-        var result = totp.VerifyTotp(randomResponse.Random, out long stepMatched,window);
-        DateTime start = DateTime.Now;
-        DateTime date = start.AddMilliseconds(stepMatched).ToLocalTime();
-
-        Console.WriteLine(date);
-
+        var result = _otpService.VerifyOtp(otpResponseDto);
         return Ok(result);
     }
-}
-
-public class Response
-{
-    public byte[] Key { get; set; }
-    
-    public string UserId { get; set; }
-    public string Random { get; set; }
 }
